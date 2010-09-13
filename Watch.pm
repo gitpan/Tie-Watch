@@ -1,4 +1,4 @@
-$Tie::Watch::VERSION = '1.2';
+$Tie::Watch::VERSION = '1.301';
 
 package Tie::Watch;
 
@@ -355,7 +355,7 @@ sub Unwatch {
 
     my $variable = $_[0]->{-variable};
     my $type = ref $variable;
-    my $copy = $_[0]->{-ptr} if $type !~ /(SCALAR|REF)/;
+    my $copy; $copy = $_[0]->{-ptr} if $type !~ /(SCALAR|REF)/;
     my $shadow = $_[0]->{-shadow};
     undef $_[0];
     if ($type =~ /(SCALAR|REF)/) {
@@ -421,7 +421,8 @@ sub normalize_callbacks {
 
 ###############################################################################
 
-package Tie::Watch::Scalar;
+package # temporarily disabled from PAUSE indexer because of permission problems
+ Tie::Watch::Scalar;
 
 use Carp;
 @Tie::Watch::Scalar::ISA = qw/Tie::Watch/;
@@ -454,7 +455,8 @@ sub STORE   {$_[0]->callback('-store', $_[1])}
 
 ###############################################################################
 
-package Tie::Watch::Array;
+package # temporarily disabled from PAUSE indexer because of permission problems
+ Tie::Watch::Array;
 
 use Carp;
 @Tie::Watch::Array::ISA = qw/Tie::Watch/;
@@ -463,7 +465,7 @@ sub TIEARRAY {
 
     my($class, %args) = @_;
     my($variable, $shadow) = @args{-variable, -shadow};
-    my @copy = @$variable if $shadow; # make a private copy of user's array
+    my @copy; @copy = @$variable if $shadow; # make a private copy of user's array
     $args{-ptr} = $shadow ? \@copy : [];
     my $watch_obj = Tie::Watch->base_watch(%args);
     print "WatchArray new: $variable created, \@_=", join(',', @_), "!\n"
@@ -493,7 +495,7 @@ sub Splice    {
     return splice @{$_[0]->{-ptr}}, $_[1], $_[2], @_[3 .. $#_] if $n >= 4;
 }
 sub Store     {$_[0]->{-ptr}->[$_[1]] = $_[2]}
-sub Storesize {$#{@{$_[0]->{-ptr}}} = $_[1] - 1}
+sub Storesize {$#{$_[0]->{-ptr}} = $_[1] - 1}
 sub Unshift   {unshift @{$_[0]->{-ptr}}, @_[1 .. $#_]}
 
 # Array access methods.
@@ -515,7 +517,8 @@ sub UNSHIFT   {$_[0]->callback('-unshift', @_[1 .. $#_])}
 
 ###############################################################################
 
-package Tie::Watch::Hash;
+package # temporarily disabled from PAUSE indexer because of permission problems
+ Tie::Watch::Hash;
 
 use Carp;
 @Tie::Watch::Hash::ISA = qw/Tie::Watch/;
@@ -524,7 +527,7 @@ sub TIEHASH {
 
     my($class, %args) = @_;
     my($variable, $shadow) = @args{-variable, -shadow};
-    my %copy = %$variable if $shadow; # make a private copy of user's hash
+    my %copy; %copy = %$variable if $shadow; # make a private copy of user's hash
     $args{-ptr} = $shadow ? \%copy : {};
     my $watch_obj = Tie::Watch->base_watch(%args);
     print "WatchHash new: $variable created, \@_=", join(',', @_), "!\n"
